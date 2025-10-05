@@ -43,7 +43,7 @@ This was for my Cloudflare assignment, and I had to hit four requirements:
 
 1. Clone this repo:
    ```bash
-   git clone https://github.com/albert97567/cfai.git
+   git clone https://github.com/albert97567/cf_ai_albert_le.git
    cd cfai
    ```
 
