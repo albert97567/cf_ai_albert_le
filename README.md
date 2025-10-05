@@ -1,30 +1,17 @@
-# LLM Chat Application Template
+# 🎧 Voice Pal - AI Voice Assistant
 
-A simple, ready-to-deploy chat application template powered by Cloudflare Workers AI. This template provides a clean starting point for building AI chat applications with streaming responses.
-
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/llm-chat-app-template)
-
-<!-- dash-content-start -->
-
-## Demo
-
-This template demonstrates how to build an AI-powered chat interface using Cloudflare Workers AI with streaming responses. It features:
-
-- Real-time streaming of AI responses using Server-Sent Events (SSE)
-- Easy customization of models and system prompts
-- Support for AI Gateway integration
-- Clean, responsive UI that works on mobile and desktop
+An AI-powered voice assistant built on Cloudflare infrastructure that enables real-time voice conversations.
 
 ## Features
 
-- 💬 Simple and responsive chat interface
-- ⚡ Server-Sent Events (SSE) for streaming responses
-- 🧠 Powered by Cloudflare Workers AI LLMs
-- 🛠️ Built with TypeScript and Cloudflare Workers
-- 📱 Mobile-friendly design
-- 🔄 Maintains chat history on the client
-- 🔎 Built-in Observability logging
-<!-- dash-content-end -->
+- 🎤 **Voice Input**: Click-to-record voice messages using browser's MediaRecorder API
+- 🗣️ **Speech-to-Text**: Powered by Workers AI Whisper model
+- 🤖 **LLM Processing**: Uses Llama 3.3 70B for conversational AI responses
+- 🔊 **Text-to-Speech**: Browser's Web Speech API for natural voice responses
+- 💬 **Text Chat**: Traditional text-based chat interface as fallback
+- ⚡ **Real-time Streaming**: Server-Sent Events for streaming LLM responses
+- 📱 **Responsive UI**: Clean, modern interface optimized for voice interactions
+- 🔄 **Conversation Memory**: Maintains chat history throughout the session
 
 ## Getting Started
 
@@ -91,6 +78,7 @@ npm wrangler tail
 │   └── chat.js         # Chat UI frontend script
 ├── src/
 │   ├── index.ts        # Main Worker entry point
+│   ├── conversation.ts # Durable Object for state management
 │   └── types.ts        # TypeScript type definitions
 ├── test/               # Test files
 ├── wrangler.jsonc      # Cloudflare Worker configuration
@@ -100,54 +88,116 @@ npm wrangler tail
 
 ## How It Works
 
-### Backend
+### Voice Conversation Flow
 
-The backend is built with Cloudflare Workers and uses the Workers AI platform to generate responses. The main components are:
+1. **User speaks** → Browser captures audio via MediaRecorder API
+2. **Audio → Text** → Workers AI Whisper model converts speech to text
+3. **Text → LLM** → Llama 3.3 generates conversational response (streaming)
+4. **LLM → Speech** → Web Speech API speaks the response aloud
 
-1. **API Endpoint** (`/api/chat`): Accepts POST requests with chat messages and streams responses
-2. **Streaming**: Uses Server-Sent Events (SSE) for real-time streaming of AI responses
-3. **Workers AI Binding**: Connects to Cloudflare's AI service via the Workers AI binding
+### Backend (Cloudflare Workers + Durable Objects)
+
+- **`POST /api/chat`**: LLM chat completion with streaming responses
+- **`POST /api/speech-to-text`**: Audio transcription using Workers AI Whisper
+- **`POST /api/session`**: Create new conversation session
+- **`GET /api/session?id={sessionId}`**: Retrieve conversation history
+- **Durable Objects**: Persistent conversation state storage
+- **Workers AI Binding**: Connects to Cloudflare's AI service
+- **AI Models**:
+  - LLM: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`
+  - STT: `@cf/openai/whisper`
 
 ### Frontend
 
-The frontend is a simple HTML/CSS/JavaScript application that:
+- **Voice Recording**: MediaRecorder API captures microphone input
+- **Speech-to-Text**: Sends audio to Workers AI for transcription
+- **LLM Chat**: Streaming responses displayed in real-time
+- **Text-to-Speech**: Browser's Web Speech API for voice output
+- **Chat History**: Maintains conversation context
 
-1. Presents a chat interface
-2. Sends user messages to the API
-3. Processes streaming responses in real-time
-4. Maintains chat history on the client side
+## Usage
+
+### Voice Mode (Primary Interaction)
+
+1. Click the green microphone button 🎤
+2. Grant microphone permissions when prompted
+3. Speak your message
+4. Click the microphone again to stop recording (turns red while recording)
+5. Voice Pal will:
+   - Transcribe your speech
+   - Generate an AI response
+   - Speak the response back to you
+
+### Text Mode (Fallback)
+
+- Type your message in the text box
+- Press Enter or click "Send"
+- Receive text responses (no voice output)
+
+## Browser Compatibility
+
+- **Microphone Access**: Requires HTTPS (or localhost for dev)
+- **MediaRecorder API**: Chrome, Firefox, Edge, Safari 14.1+
+- **Web Speech API**: Most modern browsers
+- **Recommended**: Chrome/Edge for best voice quality
 
 ## Customization
 
-### Changing the Model
+### Changing the LLM Model
 
-To use a different AI model, update the `MODEL_ID` constant in `src/index.ts`. You can find available models in the [Cloudflare Workers AI documentation](https://developers.cloudflare.com/workers-ai/models/).
+Update `LLM_MODEL_ID` in `src/index.ts`. Available models: [Workers AI Models](https://developers.cloudflare.com/workers-ai/models/).
 
-### Using AI Gateway
+### Modifying Voice Assistant Personality
 
-The template includes commented code for AI Gateway integration, which provides additional capabilities like rate limiting, caching, and analytics.
-
-To enable AI Gateway:
-
-1. [Create an AI Gateway](https://dash.cloudflare.com/?to=/:account/ai/ai-gateway) in your Cloudflare dashboard
-2. Uncomment the gateway configuration in `src/index.ts`
-3. Replace `YOUR_GATEWAY_ID` with your actual AI Gateway ID
-4. Configure other gateway options as needed:
-   - `skipCache`: Set to `true` to bypass gateway caching
-   - `cacheTtl`: Set the cache time-to-live in seconds
-
-Learn more about [AI Gateway](https://developers.cloudflare.com/ai-gateway/).
-
-### Modifying the System Prompt
-
-The default system prompt can be changed by updating the `SYSTEM_PROMPT` constant in `src/index.ts`.
+Change `SYSTEM_PROMPT` in `src/index.ts`:
+```typescript
+const SYSTEM_PROMPT = "You are Voice Pal, a friendly AI voice assistant...";
+```
 
 ### Styling
 
-The UI styling is contained in the `<style>` section of `public/index.html`. You can modify the CSS variables at the top to quickly change the color scheme.
+Modify CSS variables in `public/index.html`:
+```css
+:root {
+  --primary-color: #f6821f;
+  --primary-hover: #e67e22;
+  /* ... */
+}
+```
+
+### Using AI Gateway
+
+Uncomment gateway configuration in `src/index.ts` for caching, rate limiting, and analytics.
+
+## Assignment Requirements ✅
+
+This project fulfills **ALL** requirements for the Cloudflare AI assignment:
+
+- ✅ **LLM**: Llama 3.3 70B (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) on Workers AI
+- ✅ **Workflow/Coordination**: Cloudflare Workers + **Durable Objects** orchestrate STT → LLM → TTS pipeline
+- ✅ **User Input**: Voice (microphone via MediaRecorder API) + text chat interface
+- ✅ **Memory/State**: **Durable Objects** provide persistent conversation storage across sessions
+
+## Troubleshooting
+
+### Microphone not working
+- Ensure you're on HTTPS (or localhost)
+- Check browser permissions for microphone access
+- Try a different browser (Chrome/Edge recommended)
+
+### Voice not playing
+- Check browser volume settings
+- Ensure Web Speech API is supported in your browser
+- Try refreshing the page to reload voices
+
+### Wrangler dev stuck on reload
+- Stop with Ctrl+C and restart
+- Use `npm run dev` (includes `--legacy-watch` flag for Windows)
 
 ## Resources
 
 - [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Cloudflare Workers AI Documentation](https://developers.cloudflare.com/workers-ai/)
 - [Workers AI Models](https://developers.cloudflare.com/workers-ai/models/)
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+- [MediaRecorder API](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)

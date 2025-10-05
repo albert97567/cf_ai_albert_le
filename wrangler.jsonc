@@ -17,5 +17,14 @@
   "ai": {
     "binding": "AI"
   },
-  "upload_source_maps": true
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CONVERSATION",
+        "class_name": "Conversation"
+      }
+    ]
+  },
+  "upload_source_maps": true,
+  "watch_dir": ["./src", "./public"]
 }

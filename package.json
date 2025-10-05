@@ -29,8 +29,8 @@
     "cf-typegen": "wrangler types",
     "check": "tsc --noEmit && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "wrangler dev --legacy-watch",
+    "start": "wrangler dev --legacy-watch",
     "test": "vitest"
   }
 }
