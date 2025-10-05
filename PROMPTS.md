@@ -1,6 +1,9 @@
 # AI Prompts Used
 
-This document contains all the prompts I used with Claude Code to build Voice Pal.
+This document contains all the prompts I used with Claude Code to build Voice Pal. To give some context, 
+I was using Claude earlier, but it suddenly stopped generating and the only way I could reset it is to close
+the terminal and open a new one. I have lost some of the prompts I used for the bulk of generating the voice, 
+but it was mainly troubleshooting and implementing the voice speech.
 
 ## Initial Setup & Requirements
 
