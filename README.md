@@ -2,6 +2,8 @@
 
 A voice-powered AI chatbot I built for my Cloudflare AI assignment. Talk to it like a real assistant - it listens, responds, and actually remembers your conversation.
 
+**🚀 Live Demo:** https://cfai.lealbert68172.workers.dev
+
 ## What It Does
 
 Voice Pal is basically an AI you can talk to. It uses speech recognition to hear what you're saying, processes it with a powerful language model, and speaks the response back to you. Plus, it saves your entire conversation so you can pick up right where you left off.

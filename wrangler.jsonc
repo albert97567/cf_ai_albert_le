@@ -25,6 +25,11 @@
       }
     ]
   },
-  "upload_source_maps": true,
-  "watch_dir": ["./src", "./public"]
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Conversation"]
+    }
+  ],
+  "upload_source_maps": true
 }
