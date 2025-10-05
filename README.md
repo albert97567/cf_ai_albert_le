@@ -1,203 +1,179 @@
 # 🎧 Voice Pal - AI Voice Assistant
 
-An AI-powered voice assistant built on Cloudflare infrastructure that enables real-time voice conversations.
+A voice-powered AI chatbot I built for my Cloudflare AI assignment. Talk to it like a real assistant - it listens, responds, and actually remembers your conversation.
 
-## Features
+## What It Does
 
-- 🎤 **Voice Input**: Click-to-record voice messages using browser's MediaRecorder API
-- 🗣️ **Speech-to-Text**: Powered by Workers AI Whisper model
-- 🤖 **LLM Processing**: Uses Llama 3.3 70B for conversational AI responses
-- 🔊 **Text-to-Speech**: Browser's Web Speech API for natural voice responses
-- 💬 **Text Chat**: Traditional text-based chat interface as fallback
-- ⚡ **Real-time Streaming**: Server-Sent Events for streaming LLM responses
-- 📱 **Responsive UI**: Clean, modern interface optimized for voice interactions
-- 🔄 **Conversation Memory**: Maintains chat history throughout the session
+Voice Pal is basically an AI you can talk to. It uses speech recognition to hear what you're saying, processes it with a powerful language model, and speaks the response back to you. Plus, it saves your entire conversation so you can pick up right where you left off.
+
+**Key Features:**
+- 🎤 **Voice Input**: Click the mic, talk, and it transcribes in real-time
+- 🤖 **Smart AI Responses**: Powered by Llama 3.3 70B (one of Cloudflare's best models)
+- 🔊 **Voice Output**: Speaks responses back to you with a TikTok-style voice
+- 💬 **Text Chat**: Type if you don't want to use voice
+- 💾 **Conversation Memory**: Remembers everything - even after you reload the page
+- 🧹 **Clear History**: Red button to wipe the conversation and start fresh
+- ⚡ **Real-time Streaming**: See responses appear word-by-word as the AI thinks
+
+## How I Built It
+
+This was for my Cloudflare assignment, and I had to hit four requirements:
+
+1. ✅ **LLM**: Using Llama 3.3 70B (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`)
+2. ✅ **Workflow/Coordination**: Durable Objects manage the conversation flow and state
+3. ✅ **User Input**: Voice (Web Speech API) + text chat interface
+4. ✅ **Memory/State**: Durable Objects store conversation history persistently
+
+### Tech Stack
+- **Backend**: Cloudflare Workers + Durable Objects
+- **AI Models**:
+  - Llama 3.3 70B for chat
+  - Whisper for speech-to-text
+- **Frontend**: Vanilla JS with Web Speech API
+- **State**: Durable Objects (basically persistent mini-databases)
 
 ## Getting Started
 
 ### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or newer)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
-- A Cloudflare account with Workers AI access
+- Node.js (v18+)
+- Cloudflare account with Workers AI access
+- Wrangler CLI (`npm install -g wrangler`)
 
 ### Installation
 
-1. Clone this repository:
-
+1. Clone this repo:
    ```bash
-   git clone https://github.com/cloudflare/templates.git
-   cd templates/llm-chat-app
+   git clone https://github.com/albert97567/cfai.git
+   cd cfai
    ```
 
 2. Install dependencies:
-
    ```bash
    npm install
    ```
 
-3. Generate Worker type definitions:
+3. Run locally:
    ```bash
-   npm run cf-typegen
+   npm run dev
+   ```
+   Open http://localhost:8787
+
+4. Deploy to Cloudflare:
+   ```bash
+   npm run deploy
    ```
 
-### Development
+**Note**: Workers AI costs money even in dev mode, so watch your usage.
 
-Start a local development server:
+## How It Works
 
-```bash
-npm run dev
-```
+### The Flow
+1. You click the mic and speak
+2. Browser's Web Speech API transcribes your voice in real-time (you see it typing!)
+3. Your text gets sent to the Worker
+4. Worker saves your message to a Durable Object
+5. Llama 3.3 generates a response (streaming!)
+6. Worker saves the AI's response to the Durable Object
+7. Browser speaks the response out loud
 
-This will start a local server at http://localhost:8787.
+### Session Persistence
+Each browser gets a unique session ID saved in localStorage. This maps to a specific Durable Object that stores all your messages. Reload the page? Your conversation is still there. Open incognito? Fresh start with a new session.
 
-Note: Using Workers AI accesses your Cloudflare account even during local development, which will incur usage charges.
-
-### Deployment
-
-Deploy to Cloudflare Workers:
-
-```bash
-npm run deploy
-```
-
-### Monitor
-
-View real-time logs associated with any deployed Worker:
-
-```bash
-npm wrangler tail
-```
+### API Endpoints
+- `POST /api/chat` - Send a message, get AI response (streaming)
+- `POST /api/speech-to-text` - Convert audio to text (Whisper)
+- `POST /api/session` - Create new conversation session
+- `GET /api/session?id={id}` - Get conversation history
+- `DELETE /api/session?id={id}` - Clear conversation
 
 ## Project Structure
 
 ```
 /
-├── public/             # Static assets
-│   ├── index.html      # Chat UI HTML
-│   └── chat.js         # Chat UI frontend script
+├── public/
+│   ├── index.html      # UI with voice controls
+│   └── chat.js         # Frontend logic (voice, chat, sessions)
 ├── src/
-│   ├── index.ts        # Main Worker entry point
-│   ├── conversation.ts # Durable Object for state management
-│   └── types.ts        # TypeScript type definitions
-├── test/               # Test files
-├── wrangler.jsonc      # Cloudflare Worker configuration
-├── tsconfig.json       # TypeScript configuration
-└── README.md           # This documentation
+│   ├── index.ts        # Main Worker with API routes
+│   ├── conversation.ts # Durable Object for message storage
+│   └── types.ts        # TypeScript types
+├── wrangler.jsonc      # Cloudflare config
+└── package.json
 ```
-
-## How It Works
-
-### Voice Conversation Flow
-
-1. **User speaks** → Browser captures audio via MediaRecorder API
-2. **Audio → Text** → Workers AI Whisper model converts speech to text
-3. **Text → LLM** → Llama 3.3 generates conversational response (streaming)
-4. **LLM → Speech** → Web Speech API speaks the response aloud
-
-### Backend (Cloudflare Workers + Durable Objects)
-
-- **`POST /api/chat`**: LLM chat completion with streaming responses
-- **`POST /api/speech-to-text`**: Audio transcription using Workers AI Whisper
-- **`POST /api/session`**: Create new conversation session
-- **`GET /api/session?id={sessionId}`**: Retrieve conversation history
-- **Durable Objects**: Persistent conversation state storage
-- **Workers AI Binding**: Connects to Cloudflare's AI service
-- **AI Models**:
-  - LLM: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`
-  - STT: `@cf/openai/whisper`
-
-### Frontend
-
-- **Voice Recording**: MediaRecorder API captures microphone input
-- **Speech-to-Text**: Sends audio to Workers AI for transcription
-- **LLM Chat**: Streaming responses displayed in real-time
-- **Text-to-Speech**: Browser's Web Speech API for voice output
-- **Chat History**: Maintains conversation context
 
 ## Usage
 
-### Voice Mode (Primary Interaction)
+### Voice Mode (Recommended)
+1. Click the green 🎤 microphone button
+2. Allow mic permissions
+3. Start talking (you'll see your words appear as you speak)
+4. Click the mic again to stop
+5. AI responds with voice + text
 
-1. Click the green microphone button 🎤
-2. Grant microphone permissions when prompted
-3. Speak your message
-4. Click the microphone again to stop recording (turns red while recording)
-5. Voice Pal will:
-   - Transcribe your speech
-   - Generate an AI response
-   - Speak the response back to you
+### Text Mode
+Just type in the box and hit Send or press Enter.
 
-### Text Mode (Fallback)
-
-- Type your message in the text box
-- Press Enter or click "Send"
-- Receive text responses (no voice output)
-
-## Browser Compatibility
-
-- **Microphone Access**: Requires HTTPS (or localhost for dev)
-- **MediaRecorder API**: Chrome, Firefox, Edge, Safari 14.1+
-- **Web Speech API**: Most modern browsers
-- **Recommended**: Chrome/Edge for best voice quality
+### Clear Conversation
+Hit the red "Clear" button to wipe history and start fresh. It'll ask for confirmation first.
 
 ## Customization
 
-### Changing the LLM Model
-
-Update `LLM_MODEL_ID` in `src/index.ts`. Available models: [Workers AI Models](https://developers.cloudflare.com/workers-ai/models/).
-
-### Modifying Voice Assistant Personality
-
-Change `SYSTEM_PROMPT` in `src/index.ts`:
+### Change AI Personality
+Edit `SYSTEM_PROMPT` in `src/index.ts`:
 ```typescript
 const SYSTEM_PROMPT = "You are Voice Pal, a friendly AI voice assistant...";
 ```
 
-### Styling
+### Switch LLM Model
+Change `LLM_MODEL_ID` in `src/index.ts` to any [Workers AI model](https://developers.cloudflare.com/workers-ai/models/).
 
-Modify CSS variables in `public/index.html`:
-```css
-:root {
-  --primary-color: #f6821f;
-  --primary-hover: #e67e22;
-  /* ... */
-}
+### Adjust Voice Settings
+In `public/chat.js`, tweak the TTS settings:
+```javascript
+utterance.rate = 1.1;  // Speed
+utterance.pitch = 0.8; // Pitch (lower = deeper)
 ```
-
-### Using AI Gateway
-
-Uncomment gateway configuration in `src/index.ts` for caching, rate limiting, and analytics.
-
-## Assignment Requirements ✅
-
-This project fulfills **ALL** requirements for the Cloudflare AI assignment:
-
-- ✅ **LLM**: Llama 3.3 70B (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) on Workers AI
-- ✅ **Workflow/Coordination**: Cloudflare Workers + **Durable Objects** orchestrate STT → LLM → TTS pipeline
-- ✅ **User Input**: Voice (microphone via MediaRecorder API) + text chat interface
-- ✅ **Memory/State**: **Durable Objects** provide persistent conversation storage across sessions
 
 ## Troubleshooting
 
-### Microphone not working
-- Ensure you're on HTTPS (or localhost)
-- Check browser permissions for microphone access
-- Try a different browser (Chrome/Edge recommended)
+**Mic not working?**
+- Make sure you're on HTTPS or localhost
+- Check browser mic permissions
+- Use Chrome/Edge for best results
 
-### Voice not playing
-- Check browser volume settings
-- Ensure Web Speech API is supported in your browser
-- Try refreshing the page to reload voices
+**Voice not playing?**
+- Check your volume
+- Refresh to reload browser voices
+- Some browsers need you to interact with the page first
 
-### Wrangler dev stuck on reload
-- Stop with Ctrl+C and restart
-- Use `npm run dev` (includes `--legacy-watch` flag for Windows)
+**Session not saving?**
+- Check localStorage isn't disabled
+- Make sure Durable Objects are deployed
+
+**Dev server issues?**
+- Use `npm run dev` instead of `wrangler dev` (fixes Windows watch issues)
+- Ctrl+C and restart if stuck
+
+## Browser Compatibility
+
+Works best on:
+- Chrome/Edge (recommended)
+- Firefox
+- Safari 14.1+
+
+Requires HTTPS for microphone access (localhost works too).
 
 ## Resources
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Cloudflare Workers AI Documentation](https://developers.cloudflare.com/workers-ai/)
-- [Workers AI Models](https://developers.cloudflare.com/workers-ai/models/)
+- [Cloudflare Workers AI Docs](https://developers.cloudflare.com/workers-ai/)
+- [Durable Objects Guide](https://developers.cloudflare.com/durable-objects/)
 - [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
-- [MediaRecorder API](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)
+- [Assignment Requirements](https://developers.cloudflare.com/agents/)
+
+## License
+
+MIT - feel free to use this for your own projects!
+
+---
+
+Built for my Cloudflare AI assignment by Albert 🚀
